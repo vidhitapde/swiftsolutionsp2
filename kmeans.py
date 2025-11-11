@@ -20,11 +20,10 @@ def extract_coords(filename):
 
 # calculate euclidean distance to be used in creating distance matrix
 def euclidean_distance(point1, point2):
-    if type(point1) == type(point2):
+    if type(point1) == type(point2):    # both points are from dataframe
         return math.sqrt((point1.iloc[0] - point2.iloc[0])**2 + (point1.iloc[1] - point2.iloc[1])**2)
     else:
-        return math.sqrt((point1[0] - point2.iloc[0])**2 + (point1[1] - point2.iloc[1])**2)
-
+        return math.sqrt((point1[0] - point2.iloc[0])**2 + (point1[1] - point2.iloc[1])**2)     # point2 is from dataframe, point1 is a coordinate in form [x,y]
 
 
 def create_dist_matrix(data,cluster_centers):
@@ -54,13 +53,13 @@ def initialize_k_means_clusters(data, k):
     for point in cluster_centers:
         x = (data.iloc[point-1,0])
         y = (data.iloc[point-1,1])
-        coord = [x,y]
+        coord = [x, y]
         center_coords.append(coord)
 
-    return cluster_centers,center_coords
+    return cluster_centers, center_coords
 
 
-def k_means_assign_and_updates(data,dist,center_coords,cluster_centers = None):
+def k_means_assign_and_updates(data, dist, center_coords, cluster_centers = None):
     n = dist.shape[0]
     locations = list(range(1,n+1))
     if cluster_centers is not None:
@@ -93,9 +92,8 @@ def k_means_assign_and_updates(data,dist,center_coords,cluster_centers = None):
         x.clear()
         y.clear()
     return new_centers, result_paths
-
-
-        
+  
+  
 
 def main():
     print('\nComputeDronePath')
@@ -106,13 +104,13 @@ def main():
     
     data = extract_coords(input_file)
     random_cluster_centers,centers_coords = initialize_k_means_clusters(data,2)
-    distance_matrix = create_dist_matrix(data,random_cluster_centers)
-    new_centers,result_paths = k_means_assign_and_updates(data,distance_matrix,centers_coords,random_cluster_centers)
-    newer_centers,newer_result_paths = k_means_assign_and_updates(data,distance_matrix,new_centers,None)
+    distance_matrix = create_dist_matrix(data, random_cluster_centers)
+    new_centers,result_paths = k_means_assign_and_updates(data, distance_matrix, centers_coords, random_cluster_centers)
+    newer_centers,newer_result_paths = k_means_assign_and_updates(data, distance_matrix, new_centers,None)
 
     condition = False
     while not condition:
-        newer_centers,newer_result_paths =  k_means_assign_and_updates(data,distance_matrix,new_centers,None)
+        newer_centers,newer_result_paths =  k_means_assign_and_updates(data, distance_matrix, new_centers,None)
         if(newer_centers == new_centers) and (newer_result_paths == result_paths):
             condition = True
             print(f"--------------------------------------------")
