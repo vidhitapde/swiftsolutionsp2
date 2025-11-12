@@ -211,7 +211,7 @@ def find_all_clusters(data):
     return all_centers, all_clusters
 
 
-def calculate_paths(data, all_clusters):
+def calculate_paths(data, all_clusters, end_time):
     all_dist_matrices = []
 
     for clusters in all_clusters:
@@ -230,7 +230,7 @@ def calculate_paths(data, all_clusters):
     all_routes = []
     total_cost = []
 
-    time_remaining = 300 - time.time()  # 5 minutes - time that has passed
+    time_remaining = end_time - time.time()
     time_interval = time_remaining/4
     for matrix in all_dist_matrices:
         if len(matrix) > 4:     # single drone case
@@ -265,11 +265,13 @@ def main():
     data = extract_coords(input_file)
     curr_time = datetime.now()
     end_time = curr_time + timedelta(minutes=5)
-    str_end_time = end_time.strftime("%H:%M %p")
+    str_end_time = end_time.strftime("%I:%M %p")
     print(f"There are {len(data)} nodes: Solutions will be available by {str_end_time}")
 
+    end_time = time.time() + 300    # curr time + 5 minutes
+
     all_centers, all_clusters = find_all_clusters(data)
-    all_costs, all_routes, total_cost = calculate_paths(data, all_clusters)
+    all_costs, all_routes, total_cost = calculate_paths(data, all_clusters, end_time)
 
     # convert center points to int - round to nearest int then truncate to int
     all_centers_int = []
