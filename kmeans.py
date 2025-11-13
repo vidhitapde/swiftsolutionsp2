@@ -26,6 +26,13 @@ def euclidean_distance(point1, point2):
         return math.sqrt((point1.iloc[0] - point2.iloc[0])**2 + (point1.iloc[1] - point2.iloc[1])**2)
     else:
         return math.sqrt((point1[0] - point2.iloc[0])**2 + (point1[1] - point2.iloc[1])**2)     # point2 is from dataframe, point1 is a coordinate in form [x,y]
+    
+#calculating sum of squared errors between each point and its respective center value
+def sum_of_squared_errors(point1,point2):
+    if type(point1) == type(point2):    # both points are from dataframe
+        return ((point1.iloc[0] - point2.iloc[0])**2 + (point1.iloc[1] - point2.iloc[1])**2)
+    else:
+        return ((point1[0] - point2.iloc[0])**2 + (point1[1] - point2.iloc[1])**2)     # point2 is from dataframe, point1 is a coordinate in form [x,y]   
 
 
 def create_dist_matrix(data, path):
@@ -253,7 +260,12 @@ def calculate_paths(data, all_clusters, end_time):
     return all_costs, all_routes, total_cost
 
 
-
+def calculating_sse(paths,data):
+    squared_errors = []
+    for locations in paths[1:]:
+        squared_errors.append(sum_of_squared_errors(paths[0],data.iloc[locations-1]))
+    return squared_errors
+  
 
 def main():
     print('\nComputeDronePath')
@@ -290,13 +302,20 @@ def main():
     
     index = ['  i.', ' ii.', 'iii.', ' iv.']
     for i in range(len(total_cost)):
+        sse_sum_values = 0
         print(f'{i+1}) If you use {i+1} drone(s), the total route will be {total_cost[i]:.1f} meters')
         if len(all_routes[i]) > 4:
             print(f'    {index[0]}    Landing Pad 1 should be at {all_centers_int[0][0]}, serving {len(all_routes[0]) - 2} locations, route is {all_costs[0]:.1f} meters')
+            squared_errors = calculating_sse(all_clusters[0][0],data)
+            total_sum = sum(squared_errors)
+            # print(f"Total Sum of Squared Errors for 1 Drone: {total_sum:.1f}") #uncomment when testing for sse
         else:
             for j in range(len(all_routes[i])):
                 print(f'    {index[j]}    Landing Pad {j+1} should be at {all_centers_int[i][j]}, serving {len(all_routes[i][j]) - 2} locations, route is {all_costs[i][j]:.1f} meters')
-
+                multiple_squared_errors = calculating_sse(all_clusters[i][j],data)
+                total_sum_values = sum(multiple_squared_errors)
+                sse_sum_values += total_sum_values 
+            # print(f"Total Sum of Squared Errors for {j+1} Drones: {sse_sum_values:.1f}") #uncomment when testing for sse
     print("Please select your choice 1 to 4: ", end = "")
 
 
