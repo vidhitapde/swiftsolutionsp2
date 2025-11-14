@@ -31,8 +31,8 @@ def circle_points(total_points, origins, radius, instances, num_circles):
 
 
 def main():
-    circle_points(128, [[0,0]], 1, 8, 1)
-    circle_points(128, [[0,0], [8,0]], 1, 7, 2)
+    # circle_points(128, [[0,0]], 1, 8, 1)
+    circle_points(64, [[0,0], [8,0]], 1, 8, 2)
 
 if __name__ == '__main__':
   main()
