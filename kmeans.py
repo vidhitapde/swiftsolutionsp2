@@ -381,7 +381,7 @@ def main():
             best_route.append(trimmed_route)
     inner = ""
     for i in range(choice):
-        if(i== 1):
+        if(i== choice -1):
             inner+=  f"{file_name}_{i+1}_SOLUTION_{(all_costs[choice-1][i]):.0f}.txt"
         else:
             inner+=  f"{file_name}_{choice}_SOLUTION_{(all_costs[choice-1][i]):.0f}.txt, "
