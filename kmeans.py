@@ -249,7 +249,7 @@ def calculate_paths(data, all_clusters, end_time):
     for i in range(len(all_dist_matrices)):
         if len(all_dist_matrices[i]) > 4:     # single drone case
            # print("spliced_cluster:", spliced_cluster)
-            # print("all_dist_matrices[i]:", all_dist_matrices[i])
+            spliced_cluster=all_clusters[i][0]
             cost, route = anytime_nearest_neighbor_timed(all_dist_matrices[i], time_interval, spliced_cluster)
             all_costs.append(cost)
             all_routes.append(route)
@@ -277,7 +277,7 @@ def calculating_sse(paths,data):
     return squared_errors
 
 def plot_graph(drones, best_route,data,file_name, all_centers):
-    colors = ['blue', 'orange', 'green', 'purple']
+    colors = ['blue', 'orange', 'green', 'purple', 'pink', 'brown', ]
     if drones == 1:
         x = []
         y = []
@@ -382,12 +382,12 @@ def main():
     inner = ""
     for i in range(choice):
         if(i== 1):
-            inner+=  f"{file_name}_{i+1}_SOLUTION_{distance}.txt"
+            inner+=  f"{file_name}_{i+1}_SOLUTION_{(all_costs[choice-1][i]):.0f}.txt"
         else:
-            inner+=  f"{file_name}_{choice}_SOLUTION_{distance}.txt, "
+            inner+=  f"{file_name}_{choice}_SOLUTION_{(all_costs[choice-1][i]):.0f}.txt, "
     print(f"Writing {inner} to disk \n")
     for i in range(choice):
-        with open(f"{file_name}_{i+1}_SOLUTION_{distance}.txt","w") as f:
+        with open(f"{file_name}_{i+1}_SOLUTION_{(all_costs[choice-1][i]):.0f}.txt","w") as f:
             for i,point in enumerate(best_route[i]):
                 f.write(f"{point}"+"\n")
                 
