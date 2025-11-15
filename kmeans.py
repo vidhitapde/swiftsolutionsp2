@@ -17,10 +17,10 @@ def extract_coords(filename):
 
     if not all (data.dtypes == 'float64'):
         raise Exception("Locations are not in float64 format.")
-    
+
     if len(data) > 4096:
         raise Exception("Error: Locations exceeds 4096.")
-
+    
     return data
 
 # calculate euclidean distance to be used in creating distance matrix
@@ -57,7 +57,7 @@ def initialize_k_means_clusters(data, k):
     cluster_centers = set()
     i = 0
     while len(cluster_centers) < k:
-        index = random.randint(0, len(data))
+        index = random.randint(1, len(data))
         cluster_centers.add(index)
     x = []
     y = []
@@ -87,6 +87,7 @@ def k_means_assign_and_updates(data, center_coords, cluster_centers = None):
         for center in result_paths:
             if smallest_distance == center[0]:
                 center.append(locs)
+    
     x = []
     y = []
     coord = []
@@ -110,12 +111,13 @@ def k_means_assign_and_updates(data, center_coords, cluster_centers = None):
 
 
 def nearest_neighbor(dist, clusters):
+    print(clusters)
     n = dist.shape[0]
-    remaining_locations = list(range(2, n + 1)) #starts from location 2, because location 1 is starting spot
+    remaining_locations = list(range(2, n+1)) #starts from location 2, because location 1 is starting spot
 
     best_cost = float('inf')
     best_route = None
-    current_optimal_path = [1] #always start with the first x,y coordinate in txt file
+    current_optimal_path = [0] #always start with the first x,y coordinate in cluster
     total_cost = 0.0
     nearby_loc = None
 
@@ -133,7 +135,7 @@ def nearest_neighbor(dist, clusters):
         current_location = nearby_loc
         remaining_locations.remove(nearby_loc)
 
-    remaining_locations.append(1) #appends start location to get to the end of the route from that point
+    remaining_locations.append(0) #appends start location to get to the end of the route from that point
     if(len(remaining_locations) == 1):
         current_distance = dist[0][nearby_loc-1]
         total_cost += current_distance
@@ -248,9 +250,9 @@ def calculate_paths(data, all_clusters, end_time):
     time_interval = time_remaining/4
     for i in range(len(all_dist_matrices)):
         if len(all_dist_matrices[i]) > 4:     # single drone case
-           # print("spliced_cluster:", spliced_cluster)
             spliced_cluster=all_clusters[i][0]
-            cost, route = anytime_nearest_neighbor_timed(all_dist_matrices[i], time_interval, spliced_cluster)
+            # cost, route = anytime_nearest_neighbor_timed(all_dist_matrices[i], time_interval, spliced_cluster)
+            cost, route = nearest_neighbor(all_dist_matrices[i], spliced_cluster)
             all_costs.append(cost)
             all_routes.append(route)
             total_cost.append(cost)
@@ -259,7 +261,8 @@ def calculate_paths(data, all_clusters, end_time):
             k_routes = []
             for j in range(len(all_dist_matrices[i])):
                 spliced_cluster=all_clusters[i][j]
-                cost, route = anytime_nearest_neighbor_timed(all_dist_matrices[i][j], time_interval/len(all_dist_matrices[i]), spliced_cluster)
+                # cost, route = anytime_nearest_neighbor_timed(all_dist_matrices[i][j], time_interval/len(all_dist_matrices[i]), spliced_cluster)
+                cost, route = nearest_neighbor(all_dist_matrices[i][j], spliced_cluster)
                 k_costs.append(cost)
                 k_routes.append(route)
 
@@ -279,11 +282,13 @@ def calculating_sse(paths,data):
 def plot_graph(drones, best_route,data,file_name, all_centers):
     colors = ['blue', 'orange', 'green', 'purple', 'pink', 'brown', ]
     if drones == 1:
-        x = []
-        y = []
-        for loc in best_route:
+        x = [all_centers[0][0]]
+        y = [all_centers[0][1]]
+        for loc in best_route[1:-1]:
             x.append(data.iloc[loc-1, 0])
             y.append(data.iloc[loc-1, 1])
+        x.append(all_centers[0][0])
+        y.append(all_centers[0][1])
         plt.plot(x, y, color='blue')
         plt.scatter(x[0], y[0], marker = 'o', facecolors = 'purple', s=100)
 
@@ -296,9 +301,11 @@ def plot_graph(drones, best_route,data,file_name, all_centers):
            x = [center[0]]
            y = [center[1]]
            #SKIP THe last point
-           for loc in route[1:len(route)-1]:
+           for loc in route[1:-1]:
                x.append(data.iloc[loc-1, 0])
                y.append(data.iloc[loc-1, 1])
+           x.append(center[0])
+           y.append(center[1])
            plt.plot(x, y, color=colors[i])
            plt.scatter(x[0], y[0], marker = 'o', facecolors = 'red', s=100)
 
@@ -328,9 +335,7 @@ def main():
     end_time = time.time() + 20    # curr time + 5 minutes
 
     all_centers, all_clusters = find_all_clusters(data)
-    # print("all_clusters:", all_clusters)
     all_costs, all_routes, total_cost = calculate_paths(data, all_clusters, end_time)
-    print("FINAL all_routes:", all_routes)
 
     # convert center points to int - round to nearest int then truncate to int
     all_centers_int = []
@@ -363,6 +368,7 @@ def main():
                 total_sum_values = sum(multiple_squared_errors)
                 sse_sum_values += total_sum_values 
             # print(f"Total Sum of Squared Errors for {j+1} Drones: {sse_sum_values:.1f}") #uncomment when testing for sse
+    
     print("Please select your choice 1 to 4: ", end = "")
     choice = int(input())
     plot_route = all_routes[choice-1]
@@ -371,15 +377,24 @@ def main():
     # print_route = best_route[0][:-1]
     # print("Best route:", print_route)
     #remove first and last elements from each drone path for output files
+    inner = ""
     best_route= []
     if choice == 1:
         trimmed_route = plot_route[1:-1]
         best_route.append(trimmed_route)
+        inner+=  f"{file_name}_{i+1}_SOLUTION_{(all_costs[choice-1]):.0f}.txt"
+        print(f"Writing {inner} to disk \n")
+        for i in range(choice):
+            with open(f"{file_name}_{i+1}_SOLUTION_{(all_costs[choice-1]):.0f}.txt","w") as f:
+                for i,point in enumerate(best_route[i]):
+                    f.write(f"{point}"+"\n")
+        plot_graph(choice, plot_route, data, file_name_w_ext, all_centers_int[choice - 1])
+        return
     else:
         for i in range(choice):
             trimmed_route = plot_route[i][1:-1]
             best_route.append(trimmed_route)
-    inner = ""
+    
     for i in range(choice):
         if(i== choice -1):
             inner+=  f"{file_name}_{i+1}_SOLUTION_{(all_costs[choice-1][i]):.0f}.txt"
