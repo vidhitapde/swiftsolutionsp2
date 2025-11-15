@@ -5,7 +5,7 @@ import os
 import pandas as pd
 
 def circle_points(total_points, origins, radius, instances, num_circles):
-    os.makedirs(f'Circle-points/{num_circles}-circle/{total_points}-points/{radius}-radius', exist_ok=True)
+    os.makedirs(f'Circle-points-for-testing/{num_circles}-circle/{total_points}-points/{radius}-radius', exist_ok=True)
     rand.seed("None")
     angles = []
     points = []
@@ -24,15 +24,15 @@ def circle_points(total_points, origins, radius, instances, num_circles):
             angles.clear()
 
         data = pd.DataFrame(points, columns=['x','y'])
-        data.to_csv(f'Circle-points/{num_circles}-circle/{total_points}-points/{radius}-radius/instance{j}', float_format='%.7e', sep=' ', index=False, header=None)
+        data.to_csv(f'Circle-points-for-testing/{num_circles}-circle/{total_points}-points/{radius}-radius/instance{j}', float_format='%.7e', sep=' ', index=False, header=None)
 
         points.clear()
 
 
 
 def main():
-    circle_points(128, [[0,0]], 1, 8, 1)
-    circle_points(128, [[0,0], [8,0]], 1, 7, 2)
+    circle_points(128, [[0,0]], 1, 10, 1)
+    circle_points(128, [[0,0], [8,0]], 1, 10, 2)
 
 if __name__ == '__main__':
   main()
